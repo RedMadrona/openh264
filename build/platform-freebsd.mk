@@ -1,5 +1,5 @@
 ASM = nasm
-CFLAGS += -Werror -fPIC -DLINUX -D__NO_CTYPE
+CFLAGS += -fPIC
 LDFLAGS += -lpthread
 ASMFLAGS += -f elf -DNOPREFIX
 

@@ -451,11 +451,11 @@ int ParseCommandLine (int argc, char** argv, SVCEncodingParam& sParam) {
 
 void PrintHelp() {
   printf ("\n Wels SVC Encoder Usage:\n\n");
+  printf (" Syntax: welsenc.exe -h\n");
   printf (" Syntax: welsenc.exe welsenc.cfg\n");
   printf (" Syntax: welsenc.exe welsenc.cfg [options]\n");
 
   printf ("\n Supported Options:\n");
-  printf ("  -h      Print Help\n");
   printf ("  -bf     Bit Stream File\n");
   printf ("  -frms   Number of total frames to be encoded\n");
   printf ("  -gop    GOPSize - GOP size (2,4,8,16,32,64, default: 1)\n");
@@ -497,10 +497,6 @@ int ParseCommandLine (int argc, char** argv, SWelsSvcCodingParam& pSvcParam, SFi
 
   while (n < argc) {
     pCommand = argv[n++];
-    if (!strcmp (pCommand, "-h")) {	// confirmed_safe_unsafe_usage
-      PrintHelp();
-      continue;
-    }
     if (!strcmp (pCommand, "-bf")) {	// confirmed_safe_unsafe_usage
       sFileSet.strBsFile.assign (argv[n]);
       ++ n;
@@ -909,11 +905,13 @@ int ProcessEncodingSvcWithParam (ISVCEncoder* pPtrEnc, int argc, char** argv) {
   int iParsedNum = 3;
   if (ParseCommandLine (argc - iParsedNum, argv + iParsedNum, sSvcParam) != 0) {
     printf ("parse pCommand line failed\n");
+    fclose(pFpSrc);
     return 1;
   }
 
   if (cmResultSuccess != pPtrEnc->Initialize (&sSvcParam, INIT_TYPE_PARAMETER_BASED)) {
     fprintf (stderr, "Encoder Initialization failed!\n");
+    fclose(pFpSrc);
     return 1;
   }
 
@@ -1418,16 +1416,14 @@ int main (int argc, char** argv)
   if (argc < 2) {
     goto exit;
   } else {
-    string	strCfgFileName = argv[1];
-    basic_string <char>::size_type index;
-    static const basic_string <char>::size_type npos = size_t (-1);
-    index = strCfgFileName.rfind (".cfg");	// check configuration type (like .cfg?)
-    if (index == npos) {
+    if (!strstr(argv[1], ".cfg")) { // check configuration type (like .cfg?)
       if (argc > 2) {
         iRet = ProcessEncodingSvcWithParam (pSVCEncoder, argc, argv);
         if (iRet != 0)
           goto exit;
-      } else {
+      } else if (argc == 2 && ! strcmp(argv[1], "-h"))
+        PrintHelp();
+      else {
         cout << "You specified pCommand is invalid!!" << endl;
         goto exit;
       }
